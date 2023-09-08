@@ -26,8 +26,9 @@ class MA(SCMSComponent):
 
         #首先获取RootCA证书
         root_cert = self.get_rootca_cert()
-        self.other_certs[CertType.RootCA] = {'root ca.id': root_cert}
+        self.SCMS_certs['RootCA'] = root_cert
         #此时RootCA还在线, 申请给自己签发证书
+        ...
 
     def broadcast_CRL(self) -> None:
         '''

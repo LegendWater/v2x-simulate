@@ -40,8 +40,7 @@ class V2XBase:
         self.public_key = dict()  #持有的自己的公钥, 格式{证书类型: [{证书id: 公钥}]}, 如{enroll:[{id:RSAPublicKey}], pseudonym:[{id:RSAPublicKey}, ...]}
         self.private_key = dict() #持有的自己的私钥, 格式同public_key, 但是存的是rsa.RSAPrivateKey
         self.SCMS_certs = dict()  #持有的SCMS组件的证书, 用于信任SCMS组件, 格式如{'ECA': Cert, 'RootCA': Cert, ...}, 这些证书都是RootCA签发给SCMS组件的
-        self.EE_certs = dict()    #持有的EE的证书, 格式如{ee_id: [Cert, Cert, ...], ee_id: [Cert], ...}
-        self.other_certs = dict() #持有的其他人的证书, 格式如{'ECA':[{eca id:Cert}], 'OBE':[{obe id:Cert}, ...]}
+        self.EE_certs = dict()    #持有的EE的证书, 格式如{'RSE': {id1: [Cert, Cert, ...], id2: [Cert, ]}, 'OBE': {id1: [Cert, ], id2: [Cert, ]}}
 
     def __get_private_key(self, cert_type: CertType, cert_id: str) -> rsa.RSAPrivateKey | None:
         '''
@@ -121,7 +120,7 @@ class EndEntity(V2XBase):
         if root_cert is None: #系统中还没有RootCA
             raise RuntimeError('Root CA还未启动')
         
-        self.other_certs['RootCA'] = [{'rootca的id不重要': root_cert}]
+        self.SCMS_certs['RootCA'] = root_cert
         #MA证书
         ...
         #ECA证书
