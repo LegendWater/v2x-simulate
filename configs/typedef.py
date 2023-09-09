@@ -2,7 +2,7 @@
 定义了SCMS系统中使用的类型
 '''
 
-from enum import Enum
+from enum import IntEnum
 from datetime import datetime, timedelta
 from configs.filter import V2XFilter, BloomFilter, CuckooFilter
 from hashlib import sha256
@@ -14,7 +14,7 @@ import utility
 import configs.config as config
 from entity.RootCA import RootCA
 
-class CertType(Enum):
+class CertType(IntEnum):
     '''
     定义了所有的证书类型
     '''
@@ -73,19 +73,21 @@ class V2XBase:
             raise RuntimeError('Root CA还未启动')
         return RootCA.self_signed_cert
 
-    def signature(self, which_cert: Certificate, content: bytes) -> bytes | None:
+    def signature(self, which_cert: Certificate, cert: Certificate) -> bytes:
         '''
-        生成自己的数字签名, 返回数字签名的内容
+        生成自己的数字签名, 返回数字签名之后证书的内容
         @param which_cert: 选择要用哪一本证书对应的私钥生成签名
+        @param cert: 待签名的证书
         '''
-        key = self.__get_private_key(which_cert.type, which_cert.id)
-        if key is None:
-            return None
+        #判断证书是否已经签名过了
+        if not cert.has_signed:
+            key = self.__get_private_key(which_cert.type, which_cert.id)
+            if key is None:
+                return b''
 
-        to_be_signed = utility.abstract(content)
-        sign = utility.signature(key, to_be_signed)
+            cert.sign(key)
 
-        return sign
+        return cert.content
 
 
 class SCMSComponent(V2XBase):
