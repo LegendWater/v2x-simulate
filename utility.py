@@ -7,7 +7,7 @@ from cryptography.x509 import Name
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives.asymmetric import rsa, padding, ec
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import Version
 import configs.config as config
@@ -47,10 +47,11 @@ def gen_key_pair():
     '''
     生成一对公私钥对, 返回RSAPublicKey, RSAPrivateKey
     '''
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    # private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
     return private_key.public_key(), private_key
 
-def key_2_bytes(pubkey: rsa.RSAPublicKey | None, prikey: rsa.RSAPrivateKey | None):
+def key_2_bytes(pubkey: ec.EllipticCurvePublicKey | None, prikey: ec.EllipticCurvePrivateKey | None):
     '''
     得到Key对象的二进制表示
     '''
@@ -92,7 +93,7 @@ def abstract(content: str|bytes) -> bytes:
     md5.update(content)
     return md5.hexdigest().encode('latin1')
 
-def gen_self_signed_cert(private_key: rsa.RSAPrivateKey):
+def gen_self_signed_cert(private_key: ec.EllipticCurvePrivateKey):
     '''
     生成符合X.509标准的自签名证书, 给RootCA自己用, 证书文件格式DER, 内容包括: \n
     证书序列号:    表示证书的唯一标识符, 由颁发者分配。\n
@@ -143,7 +144,7 @@ def gen_self_signed_cert(private_key: rsa.RSAPrivateKey):
     
     return cert
 
-def gen_X509_cert(issuer_cn_o_c: str, subject_cn_o_c: str, public_key: rsa.RSAPublicKey, private_key: rsa.RSAPrivateKey, lifespan: timedelta):
+def gen_X509_cert(issuer_cn_o_c: str, subject_cn_o_c: str, public_key: ec.EllipticCurvePublicKey, private_key: ec.EllipticCurvePrivateKey, lifespan: timedelta):
     '''
     生成符合X.509标准的 未签名 证书, 给除了RootCA以外的实体使用, 证书文件格式DER, 内容包括: \n
     证书序列号:    表示证书的唯一标识符, 由颁发者分配。\n
@@ -268,7 +269,7 @@ def get_X509_info(cert: x509.Certificate):
 
     return res
 
-def signature(cert: Certificate, private_key: rsa.RSAPrivateKey) -> bytes:
+def signature(cert: Certificate, private_key: ec.EllipticCurvePrivateKey) -> bytes:
     '''
     根据private key生成我们定义的Certificate对象的签名, 返回签名后的证书内容\n
     AI说应该用CSR申请证书, 等申请到签名之后再生成证书但是我觉得麻烦
@@ -304,3 +305,10 @@ def signature(cert: Certificate, private_key: rsa.RSAPrivateKey) -> bytes:
     mcert = builder.sign(private_key, hashes.SHA256())
     content = mcert.public_bytes(serialization.Encoding.DER)
     return content
+
+def bytes_2_x509Cert(cert_data: bytes):
+    '''
+    从DER格式的x509证书二进制中解析出证书类数据
+    '''
+    x509_cert = x509.load_der_x509_certificate(cert_data, default_backend())
+    return x509_cert

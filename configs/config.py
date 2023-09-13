@@ -11,6 +11,7 @@ url_rootca_authen = '/rootca/authen'
 
 #证书的有效时间
 cert_lifespan = {'RootCA': timedelta(days=365*10),
+                 'MA': timedelta(days=365)
                  }
 
 pseudonym_cert_req_num = 20 #单次请求的假名证书数量

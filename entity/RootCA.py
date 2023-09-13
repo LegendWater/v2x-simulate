@@ -44,7 +44,7 @@ class RootCA(SCMSComponent):
 
     def signature(self, cert_data: str) -> bytes:
         '''
-        给接收到的消息签名, 返回值仅包含生成的签名本身
+        给接收到的消息签名, 返回签名之后证书的二进制
 
         @param cert_data: cert_data是json格式的, 从Certificate.to_json()生成而来, 表示Certificate的信息, 
         之所以用str是因为cert_data是从http请求得到的, str比较方便传递

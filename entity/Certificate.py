@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import json
 
 from cryptography import x509
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa, ec
 
 from configs.typedef import CertType
 import utility
@@ -62,7 +62,7 @@ class Certificate:
         self.has_signed = False
         self.content = b''
 
-    def sign(self, private_key: rsa.RSAPrivateKey):
+    def sign(self, private_key: ec.EllipticCurvePrivateKey):
         '''
         用private key对自身内容签名
         '''
